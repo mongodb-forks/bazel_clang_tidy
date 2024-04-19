@@ -120,3 +120,22 @@ To see the tool in action:
 ## Requirements
 
 - Bazel 4.0 or newer (might work with older versions)
+
+## MongoDB-specific notes
+
+To test changes to this repo, do the following:
+* Create a branch from `mongodb-forks/bazel_clang_tidy (master)` (e.g.: `mongodb-forks/bazel_clang_tidy (test123)`)
+* Make and commit your changes to that branch
+* Create a branch from `10gen/mongo (master)` (e.g.: `10gen/mongo (stevegrossmongodb/SERVER-12345)`)
+* In your `10gen/mongo` branch, edit `WORKSPACE.bazel` as follows:
+  * Comment out the `http_archive(name="bazel_clang_tidy",...)` call
+  * Add the following portion:
+```
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+git_repository(
+    name = "bazel_clang_tidy",
+    branch = "test123", # put in the name of your mongodb-forks/bazel_clang_tidy branch here
+    remote = "https://github.com/mongodb-forks/bazel_clang_tidy.git",
+)
+```
+* Now you can invoke `bazel build src/... --config=clang-tidy` and it will load the bazel_clang_tidy contents from your development branch.
