@@ -123,6 +123,8 @@ To see the tool in action:
 
 ## MongoDB-specific notes
 
+### Testing changes to this repo
+
 To test changes to this repo, do the following:
 * Create a branch from `mongodb-forks/bazel_clang_tidy (master)` (e.g.: `mongodb-forks/bazel_clang_tidy (test123)`)
 * Make and commit your changes to that branch
@@ -139,3 +141,13 @@ git_repository(
 )
 ```
 * Now you can invoke `bazel build src/... --config=clang-tidy` and it will load the bazel_clang_tidy contents from your development branch.
+
+### Publishing changes to this repo
+
+If you want to change Mongo to officially use a different version of this repo, do the following:
+* Use GitHub's UI to create a new release.
+  * By default, it will use the latest revision of master (this is typically what you want)
+  * For the tag id, just incremenet whatever the last one was (e.g.: `v1.1` becomes `v1.2`)
+* In Mongo's `WORKSPACE.bazel`, change the `http_archive(name="bazel_clang_tidy",...)` call:
+  * Change `strip_prefix` to reflect the newer version (e.g.: `bazel_clang_tidy-1.1` becomes `bazel_clang_tidy-1.2`)
+  * Change `url` to reflect the newer version (e.g.: `https://github.com/mongodb-forks/bazel_clang_tidy/archive/refs/tags/v1.1.tar.gz` becomes `https://github.com/mongodb-forks/bazel_clang_tidy/archive/refs/tags/v1.2.tar.gz`)
