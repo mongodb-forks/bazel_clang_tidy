@@ -42,8 +42,9 @@ def _run_tidy(
     args.add("--export-fixes", outfile.path)
 
     if len(plugin_deps.files.to_list()) > 0:
-        plugin_file = ctx.actions.declare_file(plugin_deps.files.to_list()[0])
-        args.add("--load=" + plugin_file.path)
+        #plugin_file = ctx.actions.declare_file(plugin_deps.files.to_list()[0])
+        #args.add("--load=" + plugin_file.path)
+        args.add("--load=" + plugin_deps.files.to_list()[0].path)
 
     # add source to check
     args.add(infile.path)
