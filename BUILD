@@ -35,7 +35,7 @@ label_flag(
 )
 
 label_flag(
-    name = "clang_tidy_additional_deps2",
+    name = "clang_tidy_plugin_deps",
     build_setting_default = ":clang_tidy_additional_deps_default",
     visibility = ["//visibility:public"],
 )
