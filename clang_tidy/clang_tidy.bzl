@@ -44,7 +44,6 @@ def _run_tidy(
     if len(plugin_deps.files.to_list()) > 0:
         plugin_file = ctx.actions.declare_file(plugin_deps.files.to_list()[0])
         args.add("--load=" + plugin_file.path)
-    )
 
     # add source to check
     args.add(infile.path)
