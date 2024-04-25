@@ -40,7 +40,8 @@ set -- \
 # Somehow add --load=pluginfile to clang-tidy invocation
 
 
-echo find . -type f
+echo STEVE
+echo "find . -type f"
 find . -type f
 
 "${CLANG_TIDY_BIN}" "$@" --load=nonexistent >"$logfile" 2>&1
