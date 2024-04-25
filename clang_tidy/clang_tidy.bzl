@@ -6,11 +6,14 @@ def _run_tidy(
         wrapper,
         exe,
         additional_deps,
+        plugin_deps,
         config,
         flags,
         compilation_context,
         infile,
         discriminator):
+    # do something with plugin_deps
+    _ = plugin_deps
     inputs = depset(
         direct = (
             [infile, config] +
@@ -157,6 +160,7 @@ def _clang_tidy_aspect_impl(target, ctx):
     wrapper = ctx.attr._clang_tidy_wrapper.files_to_run
     exe = ctx.attr._clang_tidy_executable
     additional_deps = ctx.attr._clang_tidy_additional_deps
+    plugin_deps = ctx.attr._clang_tidy_plugin_deps
     config = ctx.attr._clang_tidy_config.files.to_list()[0]
     compilation_context = target[CcInfo].compilation_context
 
@@ -172,6 +176,7 @@ def _clang_tidy_aspect_impl(target, ctx):
             wrapper,
             exe,
             additional_deps,
+            plugin_deps,
             config,
             c_flags if src.extension == "c" else cxx_flags,
             compilation_context,
@@ -193,7 +198,7 @@ clang_tidy_aspect = aspect(
         "_clang_tidy_wrapper": attr.label(default = Label("//clang_tidy:clang_tidy")),
         "_clang_tidy_executable": attr.label(default = Label("//:clang_tidy_executable")),
         "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
-        "_clang_tidy_additional_deps2": attr.label(default = Label("//:clang_tidy_additional_deps2")),
+        "_clang_tidy_plugin_deps": attr.label(default = Label("//:clang_tidy_plugin_deps")),
         "_clang_tidy_config": attr.label(default = Label("//:clang_tidy_config")),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
