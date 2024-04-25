@@ -37,4 +37,6 @@ set -- \
   --warnings-as-errors=-clang-diagnostic-builtin-macro-redefined \
    "$@"
 
+# Somehow add --load=pluginfile to clang-tidy invocation
+
 "${CLANG_TIDY_BIN}" "$@" >"$logfile" 2>&1
