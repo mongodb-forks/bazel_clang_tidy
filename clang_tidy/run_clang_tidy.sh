@@ -43,5 +43,6 @@ set -- \
 echo STEVE
 echo "find . -type f"
 find . -type f
+exit 1
 
 "${CLANG_TIDY_BIN}" "$@" --load=nonexistent >"$logfile" 2>&1
