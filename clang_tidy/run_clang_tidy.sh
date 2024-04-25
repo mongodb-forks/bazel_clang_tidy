@@ -43,6 +43,5 @@ set -- \
 echo STEVE
 echo "find -L . | grep tidy"
 find -L . | grep tidy
-exit 1
 
 "${CLANG_TIDY_BIN}" "$@" --load=nonexistent >"$logfile" 2>&1
