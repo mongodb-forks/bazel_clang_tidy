@@ -41,9 +41,8 @@ def _run_tidy(
 
     args.add("--export-fixes", outfile.path)
 
+    # Note: We assume that plugin_deps, if given, has only one file in it
     if len(plugin_deps.files.to_list()) > 0:
-        #plugin_file = ctx.actions.declare_file(plugin_deps.files.to_list()[0])
-        #args.add("--load=" + plugin_file.path)
         args.add("--load=" + plugin_deps.files.to_list()[0].path)
 
     # add source to check
