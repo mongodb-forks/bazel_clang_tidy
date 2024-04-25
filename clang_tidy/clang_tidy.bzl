@@ -12,12 +12,11 @@ def _run_tidy(
         compilation_context,
         infile,
         discriminator):
-    # do something with plugin_deps
-    _ = plugin_deps
     inputs = depset(
         direct = (
             [infile, config] +
             additional_deps.files.to_list() +
+            plugin_deps.files.to_list() +
             ([exe.files_to_run.executable] if exe.files_to_run.executable else [])
         ),
         transitive = [compilation_context.headers],
@@ -41,6 +40,9 @@ def _run_tidy(
     args.add(config.path)
 
     args.add("--export-fixes", outfile.path)
+
+    if len(plugin_deps.files.to_list()) > 0:
+        args.add("--load=foo")
 
     # add source to check
     args.add(infile.path)
