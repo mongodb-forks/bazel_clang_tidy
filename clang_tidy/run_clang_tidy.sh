@@ -39,4 +39,7 @@ set -- \
 
 # Somehow add --load=pluginfile to clang-tidy invocation
 
+"${CLANG_TIDY_BIN}" --h
+
+
 "${CLANG_TIDY_BIN}" "$@" --load=nonexistent >"$logfile" 2>&1
