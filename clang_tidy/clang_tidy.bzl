@@ -141,6 +141,9 @@ def _safe_flags(flags):
 
     return [flag for flag in flags if flag not in unsupported_flags]
 
+def _expand_flags(ctx, flags):
+    return [ctx.expand_make_variables("clang_tidy_expand_flags", flag, ctx.var) for flag in flags]
+
 def _clang_tidy_aspect_impl(target, ctx):
     # if not a C/C++ target, we are not interested
     if not CcInfo in target:
@@ -168,8 +171,8 @@ def _clang_tidy_aspect_impl(target, ctx):
     compilation_context = target[CcInfo].compilation_context
 
     rule_flags = ctx.rule.attr.copts if hasattr(ctx.rule.attr, "copts") else []
-    c_flags = _safe_flags(_toolchain_flags(ctx, ACTION_NAMES.c_compile) + rule_flags) + ["-xc"]
-    cxx_flags = _safe_flags(_toolchain_flags(ctx, ACTION_NAMES.cpp_compile) + rule_flags) + ["-xc++"]
+    c_flags = _expand_flags(ctx, _safe_flags(_toolchain_flags(ctx, ACTION_NAMES.c_compile) + rule_flags) + ["-xc"])
+    cxx_flags = _expand_flags(ctx, _safe_flags(_toolchain_flags(ctx, ACTION_NAMES.cpp_compile) + rule_flags) + ["-xc++"])
 
     srcs = _rule_sources(ctx)
 
