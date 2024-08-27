@@ -51,16 +51,6 @@ def _run_tidy(
     # start args passed to the compiler
     args.add("--")
 
-    # add args specified by the toolchain, on the command line and rule copts
-    args.add_all(flags)
-
-    # add defines
-    for define in compilation_context.defines.to_list():
-        args.add("-D" + define)
-
-    for define in compilation_context.local_defines.to_list():
-        args.add("-D" + define)
-
     # add includes
     for i in compilation_context.framework_includes.to_list():
         args.add("-F" + i)
@@ -71,6 +61,16 @@ def _run_tidy(
     args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
 
     args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
+
+    # add args specified by the toolchain, on the command line and rule copts
+    args.add_all(flags)
+
+    # add defines
+    for define in compilation_context.defines.to_list():
+        args.add("-D" + define)
+
+    for define in compilation_context.local_defines.to_list():
+        args.add("-D" + define)
 
     ctx.actions.run(
         inputs = inputs,
