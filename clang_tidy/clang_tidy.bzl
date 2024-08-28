@@ -102,9 +102,7 @@ def _rule_sources(ctx):
     if hasattr(ctx.rule.attr, "srcs"):
         for src in ctx.rule.attr.srcs:
             srcs += [src for src in src.files.to_list() if src.is_source and check_valid_file_type(src)]
-    if hasattr(ctx.rule.attr, "hdrs"):
-        for hdr in ctx.rule.attr.hdrs:
-            srcs += [hdr for hdr in hdr.files.to_list() if hdr.is_source and check_valid_file_type(hdr)]
+
     # Filter sources down to only those that are Mongo-specific.
     # Although we also apply a filter mechanism in the clang-tidy config itself, this filter mechanism
     # ensures we don't run clang-tidy at *all* on #include-d headers. Without this filter, Bazel
