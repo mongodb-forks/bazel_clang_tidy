@@ -28,6 +28,9 @@ def _run_tidy(
     outfile = ctx.actions.declare_file(
         "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.yaml",
     )
+    status = ctx.actions.declare_file(
+        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.status",
+    )
 
     # this is consumed by the wrapper script
     if len(exe.files.to_list()) == 0:
@@ -38,6 +41,8 @@ def _run_tidy(
     args.add(outfile.path)  # this is consumed by the wrapper script
 
     args.add(config.path)
+
+    args.add(status.path)            
 
     args.add("--export-fixes", outfile.path)
 
