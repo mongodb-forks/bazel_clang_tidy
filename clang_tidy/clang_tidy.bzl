@@ -31,6 +31,9 @@ def _run_tidy(
     status = ctx.actions.declare_file(
         "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.status",
     )
+    status_done = ctx.actions.declare_file(
+        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.status_done",
+    )
 
     # this is consumed by the wrapper script
     if len(exe.files.to_list()) == 0:
@@ -89,7 +92,7 @@ def _run_tidy(
     )
     ctx.actions.run(
         inputs = [status],
-        outputs = [],
+        outputs = [status_done],
         executable = ctx.attr._clang_tidy_status.files_to_run,
         arguments = [status.path],
         mnemonic = "ClangTidyStatus",
