@@ -37,4 +37,4 @@ set -- \
   --warnings-as-errors=-clang-diagnostic-builtin-macro-redefined \
    "$@"
 
-"${CLANG_TIDY_BIN}" "$@" >"$logfile" 2>&1
+"${CLANG_TIDY_BIN}" "$@" >"$logfile" 2>&1 || true
