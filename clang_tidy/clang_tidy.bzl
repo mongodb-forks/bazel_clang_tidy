@@ -87,6 +87,15 @@ def _run_tidy(
         use_default_shell_env = True,
         progress_message = "Run clang-tidy on {}".format(infile.short_path),
     )
+    ctx.actions.run(
+        inputs = status,
+        outputs = [],
+        executable = wrapper,
+        arguments = [args],
+        mnemonic = "ClangTidy",
+        use_default_shell_env = True,
+        progress_message = "Run clang-tidy on {}".format(infile.short_path),
+    )
     return outputs
 
 def _rule_sources(ctx):
@@ -205,6 +214,7 @@ clang_tidy_aspect = aspect(
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
         "_clang_tidy_wrapper": attr.label(default = Label("//clang_tidy:clang_tidy")),
+        "_clang_tidy_status": attr.label(default = Label("//clang_tidy:status")),
         "_clang_tidy_executable": attr.label(default = Label("//:clang_tidy_executable")),
         "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
         "_clang_tidy_plugin_deps": attr.label(default = Label("//:clang_tidy_plugin_deps")),
