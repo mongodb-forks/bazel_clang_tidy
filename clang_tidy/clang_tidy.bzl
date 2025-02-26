@@ -99,7 +99,7 @@ def _run_tidy(
         inputs = [status, logfile],
         outputs = [status_done],
         executable = ctx.attr._clang_tidy_status.files_to_run,
-        arguments = [status.path, logfile.path],
+        arguments = [status.path, logfile.path, status_done.path],
         mnemonic = "ClangTidyStatus",
         use_default_shell_env = True,
         progress_message = "Check clang-tidy results for {}".format(infile.short_path),
