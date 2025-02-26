@@ -11,6 +11,9 @@ shift
 CONFIG=$1
 shift
 
+STATUS=$1
+shift
+
 # clang-tidy doesn't create a patchfile if there are no errors.
 # make sure the output exists, and empty if there are no errors,
 # so the build system will not be confused.
@@ -37,4 +40,6 @@ set -- \
   --warnings-as-errors=-clang-diagnostic-builtin-macro-redefined \
    "$@"
 
-"${CLANG_TIDY_BIN}" "$@" >"$logfile" 2>&1 || true
+set +e
+"${CLANG_TIDY_BIN}" "$@" >"$logfile" 2>&1
+echo "$?" > "$STATUS"
