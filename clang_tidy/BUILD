@@ -7,6 +7,6 @@ sh_binary(
 
 sh_binary(
     name = "status",
-    srcs = ["status.sh"],
+    srcs = ["check_status.sh"],
     visibility = ["//visibility:public"],
 )
