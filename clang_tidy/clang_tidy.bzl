@@ -88,7 +88,7 @@ def _run_tidy(
         progress_message = "Run clang-tidy on {}".format(infile.short_path),
     )
     ctx.actions.run(
-        inputs = status,
+        inputs = [status],
         outputs = [],
         executable = ctx.attr._clang_tidy_status.files_to_run,
         arguments = [status.path],
