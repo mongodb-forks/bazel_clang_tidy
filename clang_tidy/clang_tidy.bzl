@@ -77,16 +77,17 @@ def _run_tidy(
     for define in compilation_context.local_defines.to_list():
         args.add("-D" + define)
 
+    outputs = [outfile, status]
     ctx.actions.run(
         inputs = inputs,
-        outputs = [outfile],
+        outputs = [outfile, status],
         executable = wrapper,
         arguments = [args],
         mnemonic = "ClangTidy",
         use_default_shell_env = True,
         progress_message = "Run clang-tidy on {}".format(infile.short_path),
     )
-    return outfile
+    return outputs
 
 def _rule_sources(ctx):
     def check_valid_file_type(src):
@@ -179,8 +180,9 @@ def _clang_tidy_aspect_impl(target, ctx):
 
     srcs = _rule_sources(ctx)
 
-    outputs = [
-        _run_tidy(
+    outputs = []
+    for src in srcs:
+        outputs.extend(_run_tidy(
             ctx,
             wrapper,
             exe,
@@ -191,9 +193,7 @@ def _clang_tidy_aspect_impl(target, ctx):
             compilation_context,
             src,
             target.label.name,
-        )
-        for src in srcs
-    ]
+        ))
 
     return [
         OutputGroupInfo(report = depset(direct = outputs)),
