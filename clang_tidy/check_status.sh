@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-exit $(cat test.txt)
+exit $(cat $1)
 
