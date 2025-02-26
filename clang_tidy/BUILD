@@ -4,3 +4,9 @@ sh_binary(
     data = ["//:clang_tidy_config"],
     visibility = ["//visibility:public"],
 )
+
+sh_binary(
+    name = "status",
+    srcs = ["status.sh"],
+    visibility = ["//visibility:public"],
+)
