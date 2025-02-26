@@ -50,7 +50,7 @@ def _run_tidy(
 
     args.add(status.path)   
 
-    args.add(logfile.path
+    args.add(logfile.path)
 
     args.add("--export-fixes", outfile.path)
 
