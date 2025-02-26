@@ -90,11 +90,11 @@ def _run_tidy(
     ctx.actions.run(
         inputs = status,
         outputs = [],
-        executable = wrapper,
-        arguments = [args],
-        mnemonic = "ClangTidy",
+        executable = ctx.attr._clang_tidy_status.files_to_run,
+        arguments = [status.path],
+        mnemonic = "ClangTidyStatus",
         use_default_shell_env = True,
-        progress_message = "Run clang-tidy on {}".format(infile.short_path),
+        progress_message = "Check clang-tidy results for {}".format(infile.short_path),
     )
     return outputs
 
