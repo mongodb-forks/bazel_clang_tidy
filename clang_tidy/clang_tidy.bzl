@@ -99,7 +99,7 @@ def _run_tidy(
         use_default_shell_env = True,
         progress_message = "Check clang-tidy results for {}".format(infile.short_path),
     )
-    return outputs
+    return outputs + [status_done]
 
 def _rule_sources(ctx):
     def check_valid_file_type(src):
