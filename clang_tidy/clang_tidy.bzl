@@ -34,6 +34,9 @@ def _run_tidy(
     status_done = ctx.actions.declare_file(
         "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.status_done",
     )
+    logfile = ctx.actions.declare_file(
+        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.log",
+    )
 
     # this is consumed by the wrapper script
     if len(exe.files.to_list()) == 0:
@@ -45,7 +48,9 @@ def _run_tidy(
 
     args.add(config.path)
 
-    args.add(status.path)            
+    args.add(status.path)   
+
+    args.add(logfile.path
 
     args.add("--export-fixes", outfile.path)
 
@@ -80,10 +85,10 @@ def _run_tidy(
     for define in compilation_context.local_defines.to_list():
         args.add("-D" + define)
 
-    outputs = [outfile, status]
+    outputs = [outfile, status, logfile]
     ctx.actions.run(
         inputs = inputs,
-        outputs = [outfile, status],
+        outputs = [outfile, status, logfile],
         executable = wrapper,
         arguments = [args],
         mnemonic = "ClangTidy",
@@ -91,10 +96,10 @@ def _run_tidy(
         progress_message = "Run clang-tidy on {}".format(infile.short_path),
     )
     ctx.actions.run(
-        inputs = [status],
+        inputs = [status, logfile],
         outputs = [status_done],
         executable = ctx.attr._clang_tidy_status.files_to_run,
-        arguments = [status.path],
+        arguments = [status.path, logfile.path],
         mnemonic = "ClangTidyStatus",
         use_default_shell_env = True,
         progress_message = "Check clang-tidy results for {}".format(infile.short_path),
