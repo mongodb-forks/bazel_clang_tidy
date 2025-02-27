@@ -11,6 +11,13 @@ shift
 CONFIG=$1
 shift
 
+STATUS=$1
+shift
+
+LOGFILE=$1
+shift
+
+
 # clang-tidy doesn't create a patchfile if there are no errors.
 # make sure the output exists, and empty if there are no errors,
 # so the build system will not be confused.
@@ -20,10 +27,6 @@ truncate -s 0 $OUTPUT
 # if $CONFIG is provided by some external workspace, we need to
 # place it in the current directory
 test -e .clang-tidy || ln -s -f $CONFIG .clang-tidy
-
-# Print output on failure only
-logfile="$(mktemp)"
-trap 'if (($?)); then cat "$logfile" 1>&2; fi; rm "$logfile"' EXIT
 
 # Prepend a flag-based disabling of a check that has a serious bug in
 # clang-tidy 16 when used with C++20. Bazel always violates this check and the
@@ -37,4 +40,6 @@ set -- \
   --warnings-as-errors=-clang-diagnostic-builtin-macro-redefined \
    "$@"
 
-"${CLANG_TIDY_BIN}" "$@" >"$logfile" 2>&1
+set +e
+"${CLANG_TIDY_BIN}" "$@" >"$LOGFILE" 2>&1
+echo "$?" > "$STATUS"

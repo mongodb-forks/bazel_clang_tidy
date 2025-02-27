@@ -28,6 +28,15 @@ def _run_tidy(
     outfile = ctx.actions.declare_file(
         "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.yaml",
     )
+    status = ctx.actions.declare_file(
+        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.status",
+    )
+    status_done = ctx.actions.declare_file(
+        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.status_done",
+    )
+    logfile = ctx.actions.declare_file(
+        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.log",
+    )
 
     # this is consumed by the wrapper script
     if len(exe.files.to_list()) == 0:
@@ -38,6 +47,10 @@ def _run_tidy(
     args.add(outfile.path)  # this is consumed by the wrapper script
 
     args.add(config.path)
+
+    args.add(status.path)   
+
+    args.add(logfile.path)
 
     args.add("--export-fixes", outfile.path)
 
@@ -72,16 +85,26 @@ def _run_tidy(
     for define in compilation_context.local_defines.to_list():
         args.add("-D" + define)
 
+    outputs = [outfile, status, logfile]
     ctx.actions.run(
         inputs = inputs,
-        outputs = [outfile],
+        outputs = [outfile, status, logfile],
         executable = wrapper,
         arguments = [args],
         mnemonic = "ClangTidy",
         use_default_shell_env = True,
         progress_message = "Run clang-tidy on {}".format(infile.short_path),
     )
-    return outfile
+    ctx.actions.run(
+        inputs = [status, logfile],
+        outputs = [status_done],
+        executable = ctx.attr._clang_tidy_status.files_to_run,
+        arguments = [status.path, logfile.path, status_done.path],
+        mnemonic = "ClangTidyStatus",
+        use_default_shell_env = True,
+        progress_message = "Check clang-tidy results for {}".format(infile.short_path),
+    )
+    return outputs + [status_done]
 
 def _rule_sources(ctx):
     def check_valid_file_type(src):
@@ -174,8 +197,9 @@ def _clang_tidy_aspect_impl(target, ctx):
 
     srcs = _rule_sources(ctx)
 
-    outputs = [
-        _run_tidy(
+    outputs = []
+    for src in srcs:
+        outputs.extend(_run_tidy(
             ctx,
             wrapper,
             exe,
@@ -186,9 +210,7 @@ def _clang_tidy_aspect_impl(target, ctx):
             compilation_context,
             src,
             target.label.name,
-        )
-        for src in srcs
-    ]
+        ))
 
     return [
         OutputGroupInfo(report = depset(direct = outputs)),
@@ -200,6 +222,7 @@ clang_tidy_aspect = aspect(
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
         "_clang_tidy_wrapper": attr.label(default = Label("//clang_tidy:clang_tidy")),
+        "_clang_tidy_status": attr.label(default = Label("//clang_tidy:status")),
         "_clang_tidy_executable": attr.label(default = Label("//:clang_tidy_executable")),
         "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
         "_clang_tidy_plugin_deps": attr.label(default = Label("//:clang_tidy_plugin_deps")),
