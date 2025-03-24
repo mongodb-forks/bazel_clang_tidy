@@ -119,6 +119,9 @@ def _rule_sources(ctx):
     srcs = []
     if hasattr(ctx.rule.attr, "srcs"):
         for src in ctx.rule.attr.srcs:
+	    for src in src.files.to_list():
+		print(src)
+		print(src.is_source)
             srcs += [src for src in src.files.to_list() if src.is_source and check_valid_file_type(src)]
 
     # Filter sources down to only those that are Mongo-specific.
