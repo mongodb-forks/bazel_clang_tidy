@@ -1,6 +1,15 @@
 load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+ExcludesInfo = provider(
+    fields = {"string": "comma separated path of excluded extensions"},
+)
+
+clang_tidy_excludes_rule = rule(
+    implementation = lambda ctx: ExcludesInfo(string = ctx.build_setting_value),
+    build_setting = config.string(flag = True),
+)
+
 def _run_tidy(
         ctx,
         wrapper,
@@ -95,6 +104,9 @@ def _rule_sources(ctx):
         ]
         for file_type in permitted_file_types:
             if src.basename.endswith(file_type):
+                for ending in ctx.attr._clang_tidy_excludes[ExcludesInfo].string.split(","):
+                    if src.basename.endswith(ending):
+                        return False
                 return True
         return False
 
@@ -102,9 +114,7 @@ def _rule_sources(ctx):
     if hasattr(ctx.rule.attr, "srcs"):
         for src_depset in ctx.rule.attr.srcs:
             for src_file in src_depset.files.to_list():
-                if src_file.is_source and src_file.basename.endswith(".pb.cc"):
-                    continue
-                if check_valid_file_type(src_file):
+                if check_valid_file_type(src_file): 
                     srcs.append(src_file)
 
     # Filter sources down to only those that are Mongo-specific.
@@ -208,6 +218,7 @@ clang_tidy_aspect = aspect(
         "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
         "_clang_tidy_plugin_deps": attr.label(default = Label("//:clang_tidy_plugin_deps")),
         "_clang_tidy_config": attr.label(default = Label("//:clang_tidy_config")),
+        "_clang_tidy_excludes": attr.label(default = Label("//:clang_tidy_excludes")),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
 )

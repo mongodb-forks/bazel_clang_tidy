@@ -1,3 +1,5 @@
+load("//clang_tidy:clang_tidy.bzl", "clang_tidy_excludes_rule")
+
 filegroup(
     name = "clang_tidy_config_default",
     srcs = [
@@ -38,4 +40,9 @@ label_flag(
     name = "clang_tidy_plugin_deps",
     build_setting_default = ":clang_tidy_additional_deps_default",
     visibility = ["//visibility:public"],
+)
+
+clang_tidy_excludes_rule(
+    name="clang_tidy_excludes_rule",
+    build_setting_default = "",
 )
