@@ -43,6 +43,6 @@ label_flag(
 )
 
 clang_tidy_excludes_rule(
-    name="clang_tidy_excludes_rule",
+    name="clang_tidy_excludes",
     build_setting_default = "",
 )
