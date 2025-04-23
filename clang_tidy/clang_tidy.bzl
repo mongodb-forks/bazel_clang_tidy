@@ -18,7 +18,7 @@ def _run_tidy(
         plugin_deps,
         config,
         flags,
-        compilation_context,
+        compilation_contexts,
         infile,
         discriminator):
     inputs = depset(
@@ -28,7 +28,7 @@ def _run_tidy(
             plugin_deps.files.to_list() +
             ([exe.files_to_run.executable] if exe.files_to_run.executable else [])
         ),
-        transitive = [compilation_context.headers],
+        transitive = [compilation_context.headers for compilation_context in compilation_contexts],
     )
 
     args = ctx.actions.args()
@@ -73,16 +73,27 @@ def _run_tidy(
     # start args passed to the compiler
     args.add("--")
 
-    # add includes
-    for i in compilation_context.framework_includes.to_list():
-        args.add("-F" + i)
+    # add args specified by the toolchain, on the command line and rule copts
+    args.add_all(flags)
 
-    for i in compilation_context.includes.to_list():
-        args.add("-I" + i)
+    for compilation_context in compilation_contexts:
+        # add defines
+        for define in compilation_context.defines.to_list():
+            args.add("-D" + define)
 
-    args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
+        for define in compilation_context.local_defines.to_list():
+            args.add("-D" + define)
 
-    args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
+        # add includes
+        for i in compilation_context.framework_includes.to_list():
+            args.add("-F" + i)
+
+        for i in compilation_context.includes.to_list():
+            args.add("-I" + i)
+
+        args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
+
+        args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
 
     # add args specified by the toolchain, on the command line and rule copts
     args.add_all(flags)
@@ -203,7 +214,10 @@ def _clang_tidy_aspect_impl(target, ctx):
     additional_deps = ctx.attr._clang_tidy_additional_deps
     plugin_deps = ctx.attr._clang_tidy_plugin_deps
     config = ctx.attr._clang_tidy_config.files.to_list()[0]
-    compilation_context = target[CcInfo].compilation_context
+
+    compilation_contexts = [target[CcInfo].compilation_context]
+    if hasattr(ctx.rule.attr, "implementation_deps"):
+        compilation_contexts.extend([implementation_dep[CcInfo].compilation_context for implementation_dep in ctx.rule.attr.implementation_deps])
 
     rule_flags = ctx.rule.attr.copts if hasattr(ctx.rule.attr, "copts") else []
     c_flags = _expand_flags(ctx, _safe_flags(_toolchain_flags(ctx, ACTION_NAMES.c_compile) + rule_flags) + ["-xc"])
@@ -221,7 +235,7 @@ def _clang_tidy_aspect_impl(target, ctx):
             plugin_deps,
             config,
             c_flags if src.extension == "c" else cxx_flags,
-            compilation_context,
+            compilation_contexts,
             src,
             target.label.name,
         ))
@@ -233,6 +247,7 @@ def _clang_tidy_aspect_impl(target, ctx):
 clang_tidy_aspect = aspect(
     implementation = _clang_tidy_aspect_impl,
     fragments = ["cpp"],
+    attr_aspects = ["implementation_deps"],
     attrs = {
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
         "_clang_tidy_wrapper": attr.label(default = Label("//clang_tidy:clang_tidy")),
