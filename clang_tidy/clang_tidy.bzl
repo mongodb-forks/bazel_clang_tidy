@@ -91,9 +91,13 @@ def _run_tidy(
         for i in compilation_context.includes.to_list():
             args.add("-I" + i)
 
-        args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
-
-        args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
+        for i in compilation_context.quote_includes.to_list():
+            if i.startswith(("external", "/"):
+                args.add("-isystem")
+                args.add(i)
+            else:
+                args.add("-iquote")
+                args.add(i)
 
     # add args specified by the toolchain, on the command line and rule copts
     args.add_all(flags)
