@@ -92,7 +92,7 @@ def _run_tidy(
             args.add("-I" + i)
 
         for i in compilation_context.quote_includes.to_list() + compilation_context.system_includes.to_list():
-            if i.startswith(("external", "/"):
+            if i.startswith(("external", "/")):
                 args.add("-isystem")
                 args.add(i)
             else:
