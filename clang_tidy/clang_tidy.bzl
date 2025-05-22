@@ -92,11 +92,11 @@ def _run_tidy(
             args.add("-I" + i)
 
         for i in compilation_context.quote_includes.to_list() + compilation_context.system_includes.to_list():
-            if i.startswith(("external", "/", "src/third_party/")):
-                args.add("-isystem")
+            if i.startswith(("bazel-out", "src")) and "third_party" not in i:
+                args.add("-iquote")
                 args.add(i)
             else:
-                args.add("-iquote")
+                args.add("-isystem")
                 args.add(i)
 
     # add args specified by the toolchain, on the command line and rule copts
