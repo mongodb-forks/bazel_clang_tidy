@@ -73,9 +73,6 @@ def _run_tidy(
     # start args passed to the compiler
     args.add("--")
 
-    # add args specified by the toolchain, on the command line and rule copts
-    args.add_all(flags)
-
     for compilation_context in compilation_contexts:
         # add defines
         for define in compilation_context.defines.to_list():
@@ -84,26 +81,19 @@ def _run_tidy(
         for define in compilation_context.local_defines.to_list():
             args.add("-D" + define)
 
-    # add includes
-    for i in compilation_context.framework_includes.to_list():
-        args.add("-F" + i)
+        # add includes
+        for i in compilation_context.framework_includes.to_list():
+            args.add("-F" + i)
 
-    for i in compilation_context.includes.to_list():
-        args.add("-I" + i)
+        for i in compilation_context.includes.to_list():
+            args.add("-I" + i)
 
-    args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
+        args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
 
-    args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
+        args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
 
     # add args specified by the toolchain, on the command line and rule copts
     args.add_all(flags)
-
-    # add defines
-    for define in compilation_context.defines.to_list():
-        args.add("-D" + define)
-
-    for define in compilation_context.local_defines.to_list():
-        args.add("-D" + define)
 
     outputs = [outfile, status, logfile]
     ctx.actions.run(
