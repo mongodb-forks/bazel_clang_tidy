@@ -8,9 +8,20 @@ filegroup(
     ],
 )
 
+filegroup(
+    name = "clang_tidy_additional_configs_default",
+    srcs = [],
+)
+
 label_flag(
     name = "clang_tidy_config",
     build_setting_default = ":clang_tidy_config_default",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "clang_tidy_additional_configs",
+    build_setting_default = ":clang_tidy_additional_configs_default",
     visibility = ["//visibility:public"],
 )
 
@@ -18,6 +29,13 @@ filegroup(
     name = "clang_tidy_executable_default",
     srcs = [],  # empty list: system clang-tidy
 )
+
+label_flag(
+    name = "clang_tidy_merge_tool",
+    build_setting_default = ":clang_tidy_additional_configs_default",
+    visibility = ["//visibility:public"],
+)
+
 
 label_flag(
     name = "clang_tidy_executable",

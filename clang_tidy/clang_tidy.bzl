@@ -73,9 +73,6 @@ def _run_tidy(
     # start args passed to the compiler
     args.add("--")
 
-    # add args specified by the toolchain, on the command line and rule copts
-    args.add_all(flags)
-
     for compilation_context in compilation_contexts:
         # add defines
         for define in compilation_context.defines.to_list():
@@ -97,13 +94,6 @@ def _run_tidy(
 
     # add args specified by the toolchain, on the command line and rule copts
     args.add_all(flags)
-
-    # add defines
-    for define in compilation_context.defines.to_list():
-        args.add("-D" + define)
-
-    for define in compilation_context.local_defines.to_list():
-        args.add("-D" + define)
 
     outputs = [outfile, status, logfile]
     ctx.actions.run(
@@ -214,7 +204,8 @@ def _clang_tidy_aspect_impl(target, ctx):
     additional_deps = ctx.attr._clang_tidy_additional_deps
     plugin_deps = ctx.attr._clang_tidy_plugin_deps
     config = ctx.attr._clang_tidy_config.files.to_list()[0]
-
+    additional_configs = ctx.attr._clang_tidy_additional_configs.files.to_list()
+    
     compilation_contexts = [target[CcInfo].compilation_context]
     if hasattr(ctx.rule.attr, "implementation_deps"):
         compilation_contexts.extend([implementation_dep[CcInfo].compilation_context for implementation_dep in ctx.rule.attr.implementation_deps])
@@ -225,6 +216,24 @@ def _clang_tidy_aspect_impl(target, ctx):
 
     srcs = _rule_sources(ctx)
 
+
+    # merge the any config files that are relevent to the current directory
+    merged = ctx.actions.declare_file("%s.clang-tidy.merged.yaml" % target.label.name)
+    args = ctx.actions.args()
+    args.add("--baseline", config)
+    for f in additional_configs:
+        args.add("--config-file", f)
+    args.add("--scope-dir", ctx.label.package)   # e.g. "lib/foo/bar"
+    args.add("--out", merged)
+    ctx.actions.run(
+        executable = ctx.attr._merge_tool.files.to_list()[0],   # small py_binary
+        inputs = ctx.attr._merge_tool.files.to_list() + [config] + additional_configs,
+        outputs = [merged],
+        arguments = [args],
+        mnemonic = "MergeClangTidyConfig",
+        progress_message = "Merging clang-tidy config for %s" % target.label,
+    )
+
     outputs = []
     for src in srcs:
         outputs.extend(_run_tidy(
@@ -233,7 +242,7 @@ def _clang_tidy_aspect_impl(target, ctx):
             exe,
             additional_deps,
             plugin_deps,
-            config,
+            merged,
             c_flags if src.extension == "c" else cxx_flags,
             compilation_contexts,
             src,
@@ -256,7 +265,9 @@ clang_tidy_aspect = aspect(
         "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
         "_clang_tidy_plugin_deps": attr.label(default = Label("//:clang_tidy_plugin_deps")),
         "_clang_tidy_config": attr.label(default = Label("//:clang_tidy_config")),
+        "_clang_tidy_additional_configs": attr.label(default = Label("//:clang_tidy_additional_configs")),
         "_clang_tidy_excludes": attr.label(default = Label("//:clang_tidy_excludes")),
+        "_merge_tool": attr.label(executable = True, cfg = "exec", default = Label("//:clang_tidy_merge_tool")),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
 )
