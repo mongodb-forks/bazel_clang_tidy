@@ -216,22 +216,51 @@ def _clang_tidy_aspect_impl(target, ctx):
 
     srcs = _rule_sources(ctx)
 
+    python = ctx.toolchains["@bazel_tools//tools/python:toolchain_type"].py3_runtime
+    
+    # collect deps from python modules and setup the corresponding
+    # path so all modules can be found by the toolchain.
+    python_path = []
+    for path in ctx.attr._merge_tool[PyInfo].imports.to_list():
+        if path not in python_path:
+            python_path.append(ctx.expand_make_variables(
+                "python_library_imports",
+                "$(BINDIR)/external/" + path,
+                ctx.var,
+            ))
 
+    py_depsets = [ctx.attr._merge_tool[PyInfo].transitive_sources]
+
+    py_inputs = depset(transitive = [
+        python.files,
+    ] + py_depsets)
+
+    merge_inputs = depset(
+        direct = [config] + additional_configs,
+        transitive = [
+            ctx.attr._merge_tool.files,
+            py_inputs,
+        ],
+    )
     # merge the any config files that are relevent to the current directory
     merged = ctx.actions.declare_file("%s.clang-tidy.merged.yaml" % target.label.name)
     args = ctx.actions.args()
+    args.add(ctx.attr._merge_tool.files.to_list()[1].path)
     args.add("--baseline", config)
     for f in additional_configs:
         args.add("--config-file", f)
     args.add("--scope-dir", ctx.label.package)   # e.g. "lib/foo/bar"
     args.add("--out", merged)
     ctx.actions.run(
-        executable = ctx.attr._merge_tool.files.to_list()[0],   # small py_binary
-        inputs = ctx.attr._merge_tool.files.to_list() + [config] + additional_configs,
+        executable = python.interpreter.path,
+        inputs = merge_inputs,
         outputs = [merged],
         arguments = [args],
         mnemonic = "MergeClangTidyConfig",
         progress_message = "Merging clang-tidy config for %s" % target.label,
+        env = {
+            "PYTHONPATH": ":".join(python_path),
+        },
     )
 
     outputs = []
@@ -267,7 +296,7 @@ clang_tidy_aspect = aspect(
         "_clang_tidy_config": attr.label(default = Label("//:clang_tidy_config")),
         "_clang_tidy_additional_configs": attr.label(default = Label("//:clang_tidy_additional_configs")),
         "_clang_tidy_excludes": attr.label(default = Label("//:clang_tidy_excludes")),
-        "_merge_tool": attr.label(executable = True, cfg = "exec", default = Label("//:clang_tidy_merge_tool")),
+        "_merge_tool": attr.label(default = Label("//:clang_tidy_merge_tool")),
     },
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type", "@bazel_tools//tools/python:toolchain_type"],
 )
