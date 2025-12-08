@@ -92,6 +92,8 @@ def _run_tidy(
 
         args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
 
+        args.add_all(compilation_context.external_includes, before_each = "-isystem")
+
     # add args specified by the toolchain, on the command line and rule copts
     args.add_all(flags)
 
