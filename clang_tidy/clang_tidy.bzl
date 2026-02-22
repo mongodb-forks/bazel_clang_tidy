@@ -88,9 +88,13 @@ def _run_tidy(
         for i in compilation_context.includes.to_list():
             args.add("-I" + i)
 
-        args.add_all(compilation_context.quote_includes.to_list(), before_each = "-iquote")
-
-        args.add_all(compilation_context.system_includes.to_list(), before_each = "-isystem")
+        for i in compilation_context.quote_includes.to_list() + compilation_context.system_includes.to_list():
+            if i.startswith(("bazel-out", "src")) and "third_party" not in i:
+                args.add("-iquote")
+                args.add(i)
+            else:
+                args.add("-isystem")
+                args.add(i)
 
         args.add_all(compilation_context.external_includes, before_each = "-isystem")
 
